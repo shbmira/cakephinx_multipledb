@@ -1,0 +1,64 @@
+#!/usr/bin/env sh
+# Script to execute all the database migrations
+#
+# This project (awsmgmt) manages multiple database using Phinx Framework
+# (https://phinx.org/)
+# Author: Sergio Mira
+# -----------------------------------------------------------------------------
+# It can be ran from any folder, because relative paths are dealed by code.
+# It assumes Phinx Executable Scriptare installed under project_root/vendor/bin/phinx,
+# but its location can be changed below.
+# -----------------------------------------------------------------------------
+
+parent_path=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P );
+phinx_location="$parent_path/../../../vendor/bin/phinx";
+environments=('development' 'testing' 'production');
+
+# Checks if there are arguments
+if [ -z "$1" ];
+then
+    echo -e "\nNo argument supplied.\n\n";
+    echo "Usage:";
+    echo "$0 -e {development, testing, production}";
+    exit;
+fi
+
+# Checks if the first argument is correct
+if [ "$1" != "-e" ];
+then
+    echo -e "\nUnknown argument supplied.\n\n";
+    echo "Usage:";
+    echo "$0 -e {development, testing, production}";
+    exit;
+fi
+
+# Checks if there is second argument
+if [ -z "$2" ];
+then
+    echo -e "\nNo environment supplied.\n\n";
+    echo "Usage:";
+    echo "$0 -e {development, testing, production}";
+    exit;
+fi
+
+# Checks if the second parameter (environment name) is correct
+if [[ ! " ${environments[@]} " =~ " $2 " ]];
+then
+    echo -e "\nUnknown environment supplied.\n\n";
+    echo "Usage:";
+    echo "$0 -e {development, testing, production}";
+    exit;
+else
+    environment=$2;
+fi
+
+yml_files=`ls $parent_path/../*.yml`;
+
+for I in $yml_files;
+do
+    echo -e "\n\n================================================================================";
+    echo -e "MIGRATING BASED ON FILE BELOW:";
+    echo -e "$I";
+    echo -e "================================================================================\n\n";
+    $phinx_location migrate -vvv -e $environment -c $I;
+done
